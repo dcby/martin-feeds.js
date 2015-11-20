@@ -5,7 +5,14 @@ import * as util from "util";
 import * as zlib from "zlib";
 import {ProxifyManager} from "./ProxifyManager";
 
-export function getString(options: { url: string, proxify?: ProxifyManager, gzip?: boolean, retry?: number }): Promise<{ headers: any[], statusCode: number, statusMessage: string, data: string }> {
+export interface Response<T> {
+	headers: any[];
+	statusCode: number;
+	statusMessage: string;
+	data: T;
+}
+
+export function getString(options: { url: string, proxify?: ProxifyManager, gzip?: boolean, retry?: number }): Promise<Response<string>> {
 	var _resolve, _reject, retry = 0;
 	var _pms = new Promise((resolve, reject) => { _resolve = resolve, _reject = reject });
 

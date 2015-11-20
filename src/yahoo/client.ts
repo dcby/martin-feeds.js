@@ -87,7 +87,7 @@ export function syncFinancials(config?: any): Promise<{}> {
 			.then(data => storeItem(token, data));
 	}
 
-	function getItemData(token: SymbolToken, dataKind: string) {
+	function getItemData(token: SymbolToken, dataKind: string): Promise<string> {
 		var suffix = dataKind === "incomeStatement" ? "-is" : dataKind === "balanceSheet" ? "-bs" : "-cf";
 		var file = makeFilePath(token.internalId, suffix);
 
@@ -103,7 +103,7 @@ export function syncFinancials(config?: any): Promise<{}> {
 					proxify: _proxify,
 					retry: _config.yahoo.financials.retry
 				};
-				var data_;
+				var data_: client.Response<string>;
 				return client.getString(opts)
 					.then(data => {
 						data_ = data;
@@ -140,7 +140,7 @@ export function syncFinancials(config?: any): Promise<{}> {
 		});
 	}
 
-	function storeItem(token: SymbolToken, data: FinData) {
+	function storeItem(token: SymbolToken, data: FinData): Promise<any[]> {
 		if (!data.incomeStatement.data || !data.balanceSheet.data || !data.cashFlow.data)
 			return Promise.resolve([]);
 		return Promise.resolve()
