@@ -1,0 +1,25 @@
+{
+  "name": "martin-feeds.js",
+  "version": "0.0.1",
+  "description": "Martin data feeds.",
+  "main": "index.js",
+  "bin": {
+    "martin-feeds": "dst/.bin/program.js"
+  },
+  "author": "dcby",
+  "license": "ISC",
+  "dependencies": {
+    "cheerio": "^0.19.0",
+    "edge": "^4.0.0",
+    "edge-sql": "^0.1.2",
+    "js-yaml": "^3.4.3",
+    "mkdirp": "^0.5.1",
+    "moment": "^2.10.6",
+    "mssql": "^2.3.1",
+    "source-map-support": "^0.3.3"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/dcby/martin-feeds.git"
+  }
+}

@@ -1,0 +1,77 @@
+incomeStatement:
+  -
+    raw: Total Revenue
+    db: TotalRevenue
+  -
+    raw: Gross Profit
+    db: GrossProfit
+  -
+    raw: Research Development
+    db: ResearchDevelopment
+  -
+    raw: Selling General and Administrative
+    db: SellingGeneralAndAdministrative
+  -
+    raw: Operating Income or Loss
+    db: OperatingIncome
+  -
+    raw: Earnings Before Interest And Taxes
+    db: EarningsBeforeInterestAndTaxes
+  -
+    raw: Net Income From Continuing Ops
+    db: NetIncomeFromContinuingOps
+  -
+    raw: Net Income
+    db: NetIncome
+  -
+    raw: Net Income Applicable To Common Shares
+    db: NetIncomeApplicableToCommonShares
+
+balanceSheet:
+  -
+    raw: Cash And Cash Equivalents
+    db: CashAndEquivalents
+  -
+    raw: Inventory
+    db: Inventory
+  -
+    raw: Total Current Assets
+    db: TotalCurrentAssets
+  -
+    raw: Goodwill
+    db: Goodwill
+  -
+    raw: Intangible Assets
+    db: OtherIntangibles
+  -
+    raw: Accumulated Amortization
+    db: AccumulatedAmortization
+  -
+    raw: Total Assets
+    db: TotalAssets
+  -
+    raw: Total Current Liabilities
+    db: TotalCurrentLiabilities
+  -
+    raw: Long Term Debt
+    db: LongTermDebt
+  -
+    raw: Total Liabilities
+    db: TotalLiabilities
+  -
+    raw: Total Stockholder Equity
+    db: TotalEquity
+
+cashFlow:
+  -
+    raw: Depreciation
+    db: Depreciation
+  -
+    raw: Total Cash Flow From Operating Activities
+    db: CashFromOperatingActivities
+  -
+    raw: Capital Expenditures
+    db: CapitalExpenditures
+  -
+    raw: Dividends Paid
+    db: TotalDividendsPaid
