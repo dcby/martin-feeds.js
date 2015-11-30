@@ -71,20 +71,19 @@ export function syncFinancials(config?: any): Promise<{}> {
 		}
 	}
 
-	function getItem(token: SymbolToken) {
-		var data_: any = {};
-		return getItemData(token, "incomeStatement")
-			.then(data => { data_.incomeStatement = parser.parseFinance(data); })
-			.then(() => getItemData(token, "balanceSheet"))
-			.then(data => { data_.balanceSheet = parser.parseFinance(data); })
-			.then(() => getItemData(token, "cashFlow"))
-			.then(data => { data_.cashFlow = parser.parseFinance(data); })
-			.then(() => {
-				if (token.internalId === exemplaryInternalId)
-					validateExemplaryData(data_); // this will throw if data is bad
-				return data_;
-			})
-			.then(data => storeItem(token, data));
+	async function getItem(token: SymbolToken): Promise<void> {
+		var data_: FinData = <FinData>{};
+		let raw: string = await getItemData(token, "incomeStatement");
+		data_.incomeStatement = parser.parseFinance(raw);
+		raw = await getItemData(token, "balanceSheet");
+		data_.balanceSheet = parser.parseFinance(raw);
+		raw = await getItemData(token, "cashFlow");
+		data_.cashFlow = parser.parseFinance(raw);
+
+		if (token.internalId === exemplaryInternalId)
+			validateExemplaryData(data_); // this will throw if data is bad
+		
+		return <any>storeItem(token, data_);
 	}
 
 	function getItemData(token: SymbolToken, dataKind: string): Promise<string> {
@@ -149,8 +148,8 @@ export function syncFinancials(config?: any): Promise<{}> {
 				var columns = _factMap.incomeStatement.filter(v => v.db).map(v => v.db);
 				data.incomeStatement.data.forEach(stmt => {
 					q = `insert into hermesex.tmp.[yhoo.IncomeStmts]
-				(InternalId, PeriodEndDate, IsPreliminary, ${columns.join(", ") })
-				values (@InternalId, @PeriodEndDate, @IsPreliminary, ${columns.map(v => "@" + v).join(", ") })`;
+				(InternalId, PeriodEndDate, IsPreliminary, ${columns.join(", ")})
+				values (@InternalId, @PeriodEndDate, @IsPreliminary, ${columns.map(v => "@" + v).join(", ")})`;
 					pars = {
 						internalId: token.internalId,
 						periodEndDate: stmt.date,
@@ -166,8 +165,8 @@ export function syncFinancials(config?: any): Promise<{}> {
 				var columns = _factMap.balanceSheet.filter(v => v.db).map(v => v.db);
 				data.balanceSheet.data.forEach(stmt => {
 					q = `insert into hermesex.tmp.[yhoo.BalanceSheetStmts]
-				(InternalId, PeriodEndDate, IsPreliminary, ${columns.join(", ") })
-				values (@InternalId, @PeriodEndDate, @IsPreliminary, ${columns.map(v => "@" + v).join(", ") })`;
+				(InternalId, PeriodEndDate, IsPreliminary, ${columns.join(", ")})
+				values (@InternalId, @PeriodEndDate, @IsPreliminary, ${columns.map(v => "@" + v).join(", ")})`;
 					pars = {
 						internalId: token.internalId,
 						periodEndDate: stmt.date,
@@ -183,8 +182,8 @@ export function syncFinancials(config?: any): Promise<{}> {
 				var columns = _factMap.cashFlow.filter(v => v.db).map(v => v.db);
 				data.cashFlow.data.forEach(stmt => {
 					q = `insert into hermesex.tmp.[yhoo.CashFlowStmts]
-				(InternalId, PeriodEndDate, IsPreliminary, ${columns.join(", ") })
-				values (@InternalId, @PeriodEndDate, @IsPreliminary, ${columns.map(v => "@" + v).join(", ") })`;
+				(InternalId, PeriodEndDate, IsPreliminary, ${columns.join(", ")})
+				values (@InternalId, @PeriodEndDate, @IsPreliminary, ${columns.map(v => "@" + v).join(", ")})`;
 					pars = {
 						internalId: token.internalId,
 						periodEndDate: stmt.date,
