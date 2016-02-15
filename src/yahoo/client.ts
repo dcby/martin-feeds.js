@@ -106,7 +106,7 @@ export function syncFinancials(config?: any): Promise<{}> {
 				return client.getString(opts)
 					.then(data => {
 						data_ = data;
-						return lib.writeFile(makeFilePath(token.internalId, "-bs"), data.data);
+						return lib.writeFile(makeFilePath(token.internalId, suffix), data.data);
 					})
 					.then(() => data_.data);
 			});
