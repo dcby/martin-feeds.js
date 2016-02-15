@@ -35,7 +35,8 @@ const sqlhelp = {
 	},
 	mergeFinancials: async function(sourceTable: string, targetTable: string, fields: string[]) {
 		var update = fields.map(e => `t.[${e}] = s.[${e}]`).join(", ");
-		var insert = fields.map(e => `s.[${e}]`).join(", ");
+		var insert1 = fields.map(e => `[${e}]`).join(", ");
+		var insert2 = fields.map(e => `s.[${e}]`).join(", ");
 
 		var q = `merge ${targetTable} as t
                 using ${sourceTable} as s
@@ -43,7 +44,7 @@ const sqlhelp = {
                 when matched then
                     update set t.IsPreliminary = s.IsPreliminary, ${update}
                 when not matched then
-                    insert values (s.internalid, s.PeriodEndDate, s.IsPreliminary, ${insert});`;
+                    insert (internalid, PeriodEndDate, IsPreliminary, ${insert1}) values (s.internalid, s.PeriodEndDate, s.IsPreliminary, ${insert2});`;
 
 		await sql.query(q);
 	}
