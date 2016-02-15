@@ -23,6 +23,32 @@ interface FinData {
 	cashFlow: parser.FinanceParseResult
 }
 
+const sqlhelp = {
+	deleteObsoleteFinancials: async function(sourceTable: string, targetTable: string) {
+		var q = `delete t from ${targetTable} as t
+                where exists (select 1 from ${sourceTable} as s
+                    where t.InternalId = s.InternalId
+                    and t.PeriodEndDate > dateadd(dd, -10, s.PeriodEndDate)
+                    and t.PeriodEndDate < dateadd(dd, 10, s.PeriodEndDate)
+                    and t.PeriodEndDate <> s.PeriodEndDate);`;
+		await sql.query(q);
+	},
+	mergeFinancials: async function(sourceTable: string, targetTable: string, fields: string[]) {
+		var update = fields.map(e => `t.[${e}] = s.[${e}]`).join(", ");
+		var insert = fields.map(e => `s.[${e}]`).join(", ");
+
+		var q = `merge ${targetTable} as t
+                using ${sourceTable} as s
+                on t.internalid = s.internalid and t.PeriodEndDate = s.PeriodEndDate
+                when matched then
+                    update set t.IsPreliminary = s.IsPreliminary, ${update}
+                when not matched then
+                    insert values (s.internalid, s.PeriodEndDate, s.IsPreliminary, ${insert});`;
+
+		await sql.query(q);
+	}
+};
+
 export function syncFinancials(config?: any): Promise<{}> {
 	var _resolve, _reject, _proxify: ProxifyManager,
 		_queue: SymbolToken[], _active = [],
@@ -41,8 +67,8 @@ export function syncFinancials(config?: any): Promise<{}> {
 			return sql.getYahooSymbolsToSync();
 		})
 		.then(data => {
-			//_queue = data;
-			_queue = data.filter(value => value.symbolId === "MSFT");
+			_queue = data;
+			//_queue = data.filter(value => value.symbolId === "MSFT");
 			//_queue = data.filter(value => value.symbolId.charAt(0) !== "M");
 			//_queue = data.filter(value => value.symbolId === "JPM");
 			_cntTotal = _queue.length;
@@ -67,7 +93,27 @@ export function syncFinancials(config?: any): Promise<{}> {
 		if (_error)
 			_reject(_error);
 		else if (!_queue.length && !_active.length) {
+			merge();
+		}
+	}
+
+	async function merge() {
+		try {
+			await sql.beginTran();
+			await sqlhelp.deleteObsoleteFinancials("hermesex.tmp.[yhoo.IncomeStmts]", "hermesex.yhoo.IncomeStmts");
+			await sqlhelp.deleteObsoleteFinancials("hermesex.tmp.[yhoo.BalanceSheetStmts]", "hermesex.yhoo.BalanceSheetStmts");
+			await sqlhelp.deleteObsoleteFinancials("hermesex.tmp.[yhoo.CashFlowStmts]", "hermesex.yhoo.CashFlowStmts");
+			await sqlhelp.mergeFinancials("hermesex.tmp.[yhoo.IncomeStmts]", "hermesex.yhoo.IncomeStmts",
+				_factMap.incomeStatement.filter(v => v.db).map(v => v.db));
+			await sqlhelp.mergeFinancials("hermesex.tmp.[yhoo.BalanceSheetStmts]", "hermesex.yhoo.BalanceSheetStmts",
+				_factMap.balanceSheet.filter(v => v.db).map(v => v.db));
+			await sqlhelp.mergeFinancials("hermesex.tmp.[yhoo.CashFlowStmts]", "hermesex.yhoo.CashFlowStmts",
+				_factMap.cashFlow.filter(v => v.db).map(v => v.db));
+			await sql.commitTran();
 			_resolve();
+		}
+		catch (err) {
+			_reject(err);
 		}
 	}
 

@@ -51,3 +51,25 @@ export function query(q: string, parameters?: any): Promise<any[]> {
 	}
 	return <any>request.query(q);
 }
+
+export async function beginTran() {
+	var tran = new sql.Transaction();
+	await tran.begin();
+	sql["_tran"] = tran;
+}
+
+export async function commitTran() {
+	var tran = <sql.Transaction>sql["_tran"];
+	if (!tran)
+		return;
+	await tran.commit();
+	delete sql["_tran"];
+}
+
+export async function rollbackTran() {
+	var tran = <sql.Transaction>sql["_tran"];
+	if (!tran)
+		return;
+	await tran.rollback();
+	delete sql["_tran"];
+}
