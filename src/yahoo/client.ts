@@ -56,7 +56,8 @@ export function syncFinancials(config?: any): Promise<{}> {
 		_cntTotal: number, _cntDone = 0, _error;
 	const _pms = new Promise((resolve, reject) => { _resolve = resolve, _reject = reject });
 	const _config = Object.assign(lib.readConfig(), config || {});
-	const _factMap = lib.readYamlSync("src/yahoo/fact-map.yaml");
+	// we need to resolve path to the file relative to the project root
+	const _factMap = lib.readYamlSync(path.resolve(__dirname, "../../src/yahoo/fact-map.yaml"));
 
 	sql.connect(_config.database)
 		.then(() => sql.cloneTableSchema("hermesex.yhoo.IncomeStmts", "hermesex.tmp.[yhoo.IncomeStmts]"))
