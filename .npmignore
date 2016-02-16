@@ -1,0 +1,8 @@
+.vscode/
+.src/
+typings/
+.npmignore
+jsconfig.json
+martin-feeds.yaml
+tsconfig.json
+tsd.json

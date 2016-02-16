@@ -1,5 +1,5 @@
 {
-  "name": "martin-feeds.js",
+  "name": "martin-feeds",
   "version": "0.0.1",
   "description": "Martin data feeds.",
   "main": "index.js",

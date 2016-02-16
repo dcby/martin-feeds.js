@@ -1,3 +1,4 @@
+#!/usr/bin/env node
 "use strict";
 import "source-map-support/register";
 import * as yahoo from "../yahoo/client";
