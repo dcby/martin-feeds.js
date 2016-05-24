@@ -23,7 +23,7 @@ export function parseFinance(raw: string): FinanceParseResult {
 	var ret;
 	var $ = cheerio.load(raw),
 		$tmp, $trs;
-	
+
 	// multiplier marker
 	if (!$("td[align='right'] > small:contains('All numbers in thousands')").length)
 		return { error: new ParseError() };
@@ -42,7 +42,7 @@ export function parseFinance(raw: string): FinanceParseResult {
 
 	var data: FinanceStatement[] = [];
 	// parse first row with dates
-	$tmp.each(function() {
+	$tmp.each(function () {
 		var $this = $(this);
 		var mom = moment.utc($this.text(), "MMM D, YYYY");
 		if (!mom.isValid()) {
@@ -56,7 +56,7 @@ export function parseFinance(raw: string): FinanceParseResult {
 		return ret;
 
 	// iterate over rows
-	$trs.each(function(index) {
+	$trs.each(function (index) {
 		if (index < 1)
 			return; // skip first row
 
@@ -65,7 +65,7 @@ export function parseFinance(raw: string): FinanceParseResult {
 			return; // skip if row separator
 
 		var fact, idx = 0;
-		$this.children().each(function() {
+		$this.children().each(function () {
 			$this = $(this);
 			var value; value = $this.text().trim();
 			if (!value)
@@ -101,6 +101,48 @@ export function parseFinance(raw: string): FinanceParseResult {
 	return ret;
 }
 
+export function parseSectors(raw): ParseResult {
+	let $temp, s;
+	let $ = cheerio.load(raw);
+	$temp = $("table[cellpadding=2]");
+	s = $temp.find("th b").eq(0).text();
+	if (s !== "Sector")
+		return { error: new ParseError("'Sector' signature not found.") };
+
+	let data = $temp.find("tr > td:first-child a")
+		.get()
+		.map(e => $(e))
+		.map($e => {
+			return {
+				id: parseInt($e.attr("href").replace("conameu.html", "")),
+				name: $e.text().trim().replace(/\s+/g, " ")
+			};
+		});
+
+	return { data: data };
+}
+
+export function parseSector(raw): ParseResult {
+	let $temp, s;
+	let $ = cheerio.load(raw);
+	$temp = $("table[cellpadding=2]");
+	s = $temp.find("th b").eq(0).text();
+	if (s !== "Description")
+		return { error: new ParseError("'Description' signature not found.") };
+
+	let data = $temp.find("tr > td:first-child a")
+		.get()
+		.map(e => $(e))
+		.map($e => {
+			return {
+				id: parseInt($e.attr("href").replace("conameu.html", "")),
+				name: $e.text().trim().replace(/\s+/g, " ")
+			};
+		});
+
+	return { data: data };
+}
+
 export function parseIndustries(raw) {
 	var ret;
 	var $ = cheerio.load(raw);
@@ -109,7 +151,7 @@ export function parseIndustries(raw) {
 		return { error: new ParseError() };
 	// <a href="431conameu.html"><font face="arial" size="-1">Accident &amp; Health Insurance</font></a>
 	var data = [];
-	$items.each(function() {
+	$items.each(function () {
 		var $this = $(this);
 		var match = re.exec($this.attr("href"));
 		if (!match) {
@@ -136,7 +178,7 @@ export function parseIndustry(raw) {
 	var $items = $("table[bgcolor='dcdcdc'] > tr > td > table[width='100%'] > tr > td:first-child");
 	if (!$items.length)
 		return { error: new ParseError() };
-	
+
 	// sector
 	$tmp = $items.eq(0).find("a");
 	if ($tmp.length !== 1)
@@ -148,13 +190,13 @@ export function parseIndustry(raw) {
 		id: parseInt(match[1]),
 		name: $tmp.text()
 	};
-	
+
 	// industry
 	$tmp = $items.eq(1).find("font").eq(1);
 	if ($tmp.length !== 1)
 		return { error: new ParseError() };
 	name = "";
-	$tmp.contents().filter(function() { return this.type === "text" }).each(function() {
+	$tmp.contents().filter(function () { return this.type === "text" }).each(function () {
 		name += this.data;
 	});
 	name = name.replace(/\s+/g, " ").replace(/[()]/g, "").trim();
@@ -168,7 +210,7 @@ export function parseIndustry(raw) {
 	if (!$items.length)
 		console.warn("No symbols found on industry page.");
 	var symbols = [];
-	$items.each(function() {
+	$items.each(function () {
 		var $this = $(this);
 		var $cts = $this.contents();
 		if ($cts.length === 2) {

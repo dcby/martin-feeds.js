@@ -1,10 +1,10 @@
-"use strict";
-import * as sql from "mssql";
+import * as mssql from "mssql";
+import * as moment from "moment";
 import {SymbolToken} from "./types";
 
 export function connect(config): Promise<void> {
-	sql.map.register(String, sql.VarChar);
-	return <Promise<void>>(<any>sql).connect(config);
+	mssql.map.register(String, mssql.VarChar);
+	return <Promise<void>>(<any>mssql).connect(config);
 }
 
 export function getProxifiers() {
@@ -42,8 +42,22 @@ export function cloneTableSchema(src: string, dst: string) {
 	return query(q);
 }
 
+export function fetchPrices(rowCallback: { (row: {}): void }): Promise<number> {
+	var today = moment().startOf("day");
+	var firstDate = today.clone().startOf("month").subtract(18, "month");
+	var cutoffDate = today.clone().subtract(14, "day");
+	var q = `select p1.*, yp.RawMarketCap from hermes.dbo.sprices as p1
+		left join hermesex.yhoo.EodPrices as yp on p1.internalid = yp.internalid and p1.[date] = yp.[date]
+		where p1.[date] >= @firstDate
+		and exists (select 1 from hermes.dbo.sprices as p2 where [date] >= @cutoffDate and p1.InternalID = p2.InternalID)
+		and exists (select 1 from hermes.dbo.symbols as s where p1.InternalID = s.InternalID)
+		and p1.internalid = 5970
+		order by p1.internalid, p1.[date]`;
+	return fetch(q, { firstDate: firstDate.toDate(), cutoffDate: cutoffDate.toDate() }, rowCallback);
+}
+
 export function query(q: string, parameters?: any): Promise<any[]> {
-	var request = new sql.Request();
+	var request = new mssql.Request();
 	if (parameters) {
 		Object.getOwnPropertyNames(parameters).forEach(name => {
 			request.input(name, parameters[name]);
@@ -52,24 +66,42 @@ export function query(q: string, parameters?: any): Promise<any[]> {
 	return <any>request.query(q);
 }
 
+export function fetch(q: string, parameters: any, rowCallback: { (row: {}): void }): Promise<number> {
+	return new Promise((resolve, reject) => {
+		var request = new mssql.Request();
+		request.stream = true;
+		if (parameters) {
+			Object.getOwnPropertyNames(parameters).forEach(name => {
+				request.input(name, parameters[name]);
+			});
+		}
+
+		request.on("done", resolve);
+		request.on("error", reject);
+		request.on("row", rowCallback);
+
+		request.query(q);
+	});
+}
+
 export async function beginTran() {
-	var tran = new sql.Transaction();
+	var tran = new mssql.Transaction();
 	await tran.begin();
-	sql["_tran"] = tran;
+	mssql["_tran"] = tran;
 }
 
 export async function commitTran() {
-	var tran = <sql.Transaction>sql["_tran"];
+	var tran = <mssql.Transaction>mssql["_tran"];
 	if (!tran)
 		return;
 	await tran.commit();
-	delete sql["_tran"];
+	delete mssql["_tran"];
 }
 
 export async function rollbackTran() {
-	var tran = <sql.Transaction>sql["_tran"];
+	var tran = <mssql.Transaction>mssql["_tran"];
 	if (!tran)
 		return;
 	await tran.rollback();
-	delete sql["_tran"];
+	delete mssql["_tran"];
 }

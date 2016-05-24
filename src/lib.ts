@@ -57,4 +57,10 @@ export function getFileStat(file): Promise<fs.Stats> {
 	});
 }
 
+export function sleep(milliseconds) {
+	return new Promise(resolve => {
+		setTimeout(resolve, milliseconds);
+	});
+}
+
 export var log = util.log;

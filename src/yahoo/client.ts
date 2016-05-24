@@ -1,4 +1,3 @@
-"use strict";
 import * as path from "path";
 import * as client from "../httpClient";
 import * as parser from "./parser";
@@ -8,8 +7,9 @@ import {ProxifyManager} from "../ProxifyManager";
 import {SymbolToken} from "../types";
 
 const urls = {
-	industries: "http://biz.yahoo.com/p/sum_conameu.html",
-	industry: "http://biz.yahoo.com/p/{id}conameu.html",
+	sectors: "https://biz.yahoo.com/p/s_conameu.html",
+	industries: "https://biz.yahoo.com/p/sum_conameu.html",
+	secind: "https://biz.yahoo.com/p/{id}conameu.html",
 	incomeStatement: "http://finance.yahoo.com/q/is?s={id}",
 	balanceSheet: "http://finance.yahoo.com/q/bs?s={id}",
 	cashFlow: "http://finance.yahoo.com/q/cf?s={id}"
@@ -24,7 +24,7 @@ interface FinData {
 }
 
 const sqlhelp = {
-	deleteObsoleteFinancials: async function(sourceTable: string, targetTable: string) {
+	deleteObsoleteFinancials: async function (sourceTable: string, targetTable: string) {
 		var q = `delete t from ${targetTable} as t
                 where exists (select 1 from ${sourceTable} as s
                     where t.InternalId = s.InternalId
@@ -33,7 +33,7 @@ const sqlhelp = {
                     and t.PeriodEndDate <> s.PeriodEndDate);`;
 		await sql.query(q);
 	},
-	mergeFinancials: async function(sourceTable: string, targetTable: string, fields: string[]) {
+	mergeFinancials: async function (sourceTable: string, targetTable: string, fields: string[]) {
 		var update = fields.map(e => `t.[${e}] = s.[${e}]`).join(", ");
 		var insert1 = fields.map(e => `[${e}]`).join(", ");
 		var insert2 = fields.map(e => `s.[${e}]`).join(", ");
@@ -49,6 +49,50 @@ const sqlhelp = {
 		await sql.query(q);
 	}
 };
+
+export async function getIndustries() {
+	let res = await client.getString({ url: urls.industries });
+	if (res.statusCode !== 200)
+		throw new Error("Industries download error.");
+	let raw = res.data;
+	let ret = parser.parseIndustries(raw);
+	if (ret.error)
+		throw ret.error;
+	return ret.data;
+}
+
+export async function getIndustry(id: number) {
+	let res = await client.getString({ url: urls.secind.replace("{id}", "" + id) });
+	if (res.statusCode !== 200)
+		throw new Error("Industry download error.");
+	let raw = res.data;
+	let ret = parser.parseIndustry(raw);
+	if (ret.error)
+		throw ret.error;
+	return ret.data;
+}
+
+export async function getSectors() {
+	let res = await client.getString({ url: urls.sectors });
+	if (res.statusCode !== 200)
+		throw new Error("Sectors download error.");
+	let raw = res.data;
+	let ret = parser.parseSectors(raw);
+	if (ret.error)
+		throw ret.error;
+	return ret.data;
+}
+
+export async function getSector(id: number) {
+	let res = await client.getString({ url: urls.secind.replace("{id}", "" + id) });
+	if (res.statusCode !== 200)
+		throw new Error("Sector download error.");
+	let raw = res.data;
+	let ret = parser.parseSector(raw);
+	if (ret.error)
+		throw ret.error;
+	return ret.data;
+}
 
 export function syncFinancials(config?: any): Promise<{}> {
 	var _resolve, _reject, _proxify: ProxifyManager,
@@ -130,7 +174,7 @@ export function syncFinancials(config?: any): Promise<{}> {
 
 		if (token.internalId === exemplaryInternalId)
 			validateExemplaryData(data_); // this will throw if data is bad
-		
+
 		return <any>storeItem(token, data_);
 	}
 

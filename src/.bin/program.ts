@@ -1,16 +1,17 @@
 #!/usr/bin/env node
-"use strict";
 import "source-map-support/register";
 import * as yahoo from "../yahoo/client";
-import * as lib from "../lib";
+
+process.on("uncaughtException", err => {
+	console.log(err.stack);
+});
 
 async function main() {
 	try {
 		await yahoo.syncFinancials();
-		lib.log("done");
 	}
 	catch (err) {
-		lib.log(err.stack);
+		console.log(err.stack);
 	}
 }
 

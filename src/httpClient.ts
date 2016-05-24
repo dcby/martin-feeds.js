@@ -1,5 +1,6 @@
 "use strict";
 import * as http from "http";
+import * as https from "https";
 import * as url from "url";
 import * as util from "util";
 import * as zlib from "zlib";
@@ -36,10 +37,15 @@ export function getString(options: { url: string, proxify?: ProxifyManager, gzip
 	function query(options) {
 		var _resolve, _reject, _request, _chunks;
 		var _pms = new Promise((resolve, reject) => { _resolve = resolve, _reject = reject });
+		var opts = prepareOptions(options);
+		var request = opts.protocol === "https:" ? https.request : http.request;
 
-		_request = http.request(prepareOptions(options));
+		_request = request(opts);
 		_request.setTimeout(options.timeout || 15000, () => _request.socket.destroy());
-		_request.on("error", err => _reject(err));
+		_request.on("error", err => {
+			util.log(util.inspect(opts, { depth: 10 }));
+			_reject(err);
+		});
 		_request.on("response", r => {
 			_chunks = [];
 			var stream = r;
@@ -55,7 +61,10 @@ export function getString(options: { url: string, proxify?: ProxifyManager, gzip
 				statusMessage: r.statusMessage,
 				data: _chunks.join("")
 			}));
-			stream.on("error", err => _reject(err));
+			stream.on("error", err => {
+				util.log(util.inspect(opts, { depth: 10 }));
+				_reject(err);
+			});
 		});
 		_request.end();
 

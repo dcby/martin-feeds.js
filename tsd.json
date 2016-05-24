@@ -6,7 +6,7 @@
   "bundle": "typings/tsd.d.ts",
   "installed": {
     "node/node.d.ts": {
-      "commit": "16134c168d021351acb1673ee9659644fc58c424"
+      "commit": "ec9eb4b28c74665a602c22db3457f0a76fa0fa23"
     },
     "cheerio/cheerio.d.ts": {
       "commit": "001ca36ba58cef903c4c063555afb07bbc36bb58"
@@ -31,6 +31,12 @@
     },
     "source-map-support/source-map-support.d.ts": {
       "commit": "16134c168d021351acb1673ee9659644fc58c424"
+    },
+    "redis/redis.d.ts": {
+      "commit": "247e8d48404d11f3aff85dea5029413229e0fc36"
+    },
+    "tedious/tedious.d.ts": {
+      "commit": "ec9eb4b28c74665a602c22db3457f0a76fa0fa23"
     }
   }
 }
